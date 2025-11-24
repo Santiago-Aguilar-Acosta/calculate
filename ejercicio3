@@ -1,0 +1,204 @@
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Import data
+df = pd.read_csv('medical_examination.csv')
+
+# Add 'overweight' column
+df['overweight'] = (df['weight'] / ((df['height'] / 100) ** 2) > 25).astype(int)
+
+# Normalize data by making 0 always good and 1 always bad. If the value of 'cholesterol' or 'gluc' is 1, make the value 0. If the value is more than 1, make the value 1.
+df['cholesterol'] = (df['cholesterol'] > 1).astype(int)
+df['gluc'] = (df['gluc'] > 1).astype(int)
+
+# Draw Categorical Plot
+def draw_cat_plot():
+    # Create DataFrame for cat plot using `pd.melt` using just the values from 'cholesterol', 'gluc', 'smoke', 'alco', 'active', and 'overweight'.
+    df_cat = pd.melt(df, id_vars=['cardio'], 
+                     value_vars=['cholesterol', 'gluc', 'smoke', 'alco', 'active', 'overweight'])
+    
+    # Group and reformat the data to split it by 'cardio'. Show the counts of each feature. You will have to rename one of the columns for the catplot to work correctly.
+    df_cat = df_cat.groupby(['cardio', 'variable', 'value']).size().reset_index()
+    df_cat = df_cat.rename(columns={0: 'total'})
+    
+    # Draw the catplot with 'sns.catplot()'
+    fig = sns.catplot(
+        x='variable',
+        y='total',
+        hue='value',
+        col='cardio',
+        data=df_cat,
+        kind='bar'
+    ).fig
+    
+    # Do not modify the next two lines
+    fig.savefig('catplot.png')
+    return fig
+
+# Draw Heat Map
+def draw_heat_map():
+    # Clean the data
+    df_heat = df[
+        (df['ap_lo'] <= df['ap_hi']) &
+        (df['height'] >= df['height'].quantile(0.025)) &
+        (df['height'] <= df['height'].quantile(0.975)) &
+        (df['weight'] >= df['weight'].quantile(0.025)) &
+        (df['weight'] <= df['weight'].quantile(0.975))
+    ]
+
+    # Calculate the correlation matrix
+    corr = df_heat.corr()
+
+    # Generate a mask for the upper triangle
+    mask = np.triu(np.ones_like(corr, dtype=bool))
+
+    # Set up the matplotlib figure
+    fig, ax = plt.subplots(figsize=(12, 10))
+
+    # Draw the heatmap with 'sns.heatmap()'
+    sns.heatmap(
+        corr,
+        mask=mask,
+        annot=True,
+        fmt='.1f',
+        center=0,
+        square=True,
+        linewidths=0.5,
+        cbar_kws={'shrink': 0.5}
+    )
+
+    # Do not modify the next two lines
+    fig.savefig('heatmap.png')
+    return fig
+Explicación detallada:
+1. Importación y preprocesamiento de datos:
+python
+# Import data
+df = pd.read_csv('medical_examination.csv')
+
+# Add 'overweight' column
+df['overweight'] = (df['weight'] / ((df['height'] / 100) ** 2) > 25).astype(int)
+
+# Normalize cholesterol and glucose
+df['cholesterol'] = (df['cholesterol'] > 1).astype(int)
+df['gluc'] = (df['gluc'] > 1).astype(int)
+Sobrepeso: Calculamos BMI = peso(kg) / altura(m)² y convertimos a 1 si >25, 0 si no
+
+Normalización: Convertimos colesterol y glucosa a binario (0=normal, 1=elevado)
+
+2. Función draw_cat_plot() - Gráfico Categórico:
+python
+def draw_cat_plot():
+    # Melt the dataframe to long format
+    df_cat = pd.melt(df, id_vars=['cardio'], 
+                     value_vars=['cholesterol', 'gluc', 'smoke', 'alco', 'active', 'overweight'])
+    
+    # Group and count
+    df_cat = df_cat.groupby(['cardio', 'variable', 'value']).size().reset_index()
+    df_cat = df_cat.rename(columns={0: 'total'})
+    
+    # Create categorical plot
+    fig = sns.catplot(
+        x='variable',
+        y='total',
+        hue='value',
+        col='cardio',
+        data=df_cat,
+        kind='bar'
+    ).fig
+Proceso:
+
+pd.melt(): Convierte las columnas categóricas en filas
+
+groupby(): Agrupa por cardio, variable y valor para contar ocurrencias
+
+sns.catplot(): Crea gráfico de barras separado por condición cardiaca
+
+3. Función draw_heat_map() - Mapa de Calor:
+python
+def draw_heat_map():
+    # Clean the data
+    df_heat = df[
+        (df['ap_lo'] <= df['ap_hi']) &
+        (df['height'] >= df['height'].quantile(0.025)) &
+        (df['height'] <= df['height'].quantile(0.975)) &
+        (df['weight'] >= df['weight'].quantile(0.025)) &
+        (df['weight'] <= df['weight'].quantile(0.975))
+    ]
+
+    # Calculate correlation matrix
+    corr = df_heat.corr()
+
+    # Create mask for upper triangle
+    mask = np.triu(np.ones_like(corr, dtype=bool))
+
+    # Create heatmap
+    fig, ax = plt.subplots(figsize=(12, 10))
+    sns.heatmap(
+        corr,
+        mask=mask,
+        annot=True,
+        fmt='.1f',
+        center=0,
+        square=True,
+        linewidths=0.5,
+        cbar_kws={'shrink': 0.5}
+    )
+Limpieza de datos:
+
+Elimina presión diastólica > sistólica
+
+Elimina outliers de altura (percentiles 2.5 y 97.5)
+
+Elimina outliers de peso (percentiles 2.5 y 97.5)
+
+Mapa de calor:
+
+máscara triangular: Evita duplicar correlaciones
+
+annot=True: Muestra valores de correlación
+
+center=0: Centra el colormap en 0
+
+Para probar el código:
+Crea un archivo main.py:
+
+python
+from medical_data_visualizer import draw_cat_plot, draw_heat_map
+
+# Test the functions
+draw_cat_plot()
+draw_heat_map()
+
+print("Graphs generated successfully!")
+Para presentar en GitHub:
+Estructura del repositorio:
+
+text
+medical-data-visualizer/
+├── medical_data_visualizer.py
+├── medical_examination.csv
+├── catplot.png (generado automáticamente)
+├── heatmap.png (generado automáticamente)
+├── main.py (opcional)
+└── README.md
+README.md:
+
+markdown
+# Medical Data Visualizer
+
+Visualización de datos médicos usando Pandas, Seaborn y Matplotlib.
+
+## Características
+- Análisis de factores de riesgo cardiovascular
+- Gráficos categóricos comparativos
+- Mapa de calor de correlaciones
+
+## Tecnologías
+- Python
+- Pandas
+- Seaborn
+- Matplotlib
+- NumPy
