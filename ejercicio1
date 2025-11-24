@@ -1,0 +1,43 @@
+def calculate(lista):
+    # Verificar que la lista tiene exactamente 9 elementos
+    if len(lista) != 9:
+        raise ValueError("La lista debe contener nueve números.")
+    
+    # Convertir la lista en una matriz numpy 3x3
+    matriz = np.array(lista).reshape(3, 3)
+    
+    # Calcular las estadísticas para cada eje y la matriz aplanada
+    calculos = {
+        'mean': [
+            np.mean(matriz, axis=0).tolist(),  # Media por columnas (eje 0)
+            np.mean(matriz, axis=1).tolist(),  # Media por filas (eje 1)
+            np.mean(matriz)                    # Media de toda la matriz
+        ],
+        'variance': [
+            np.var(matriz, axis=0).tolist(),   # Varianza por columnas
+            np.var(matriz, axis=1).tolist(),   # Varianza por filas
+            np.var(matriz)                     # Varianza de toda la matriz
+        ],
+        'standard deviation': [
+            np.std(matriz, axis=0).tolist(),   # Desviación estándar por columnas
+            np.std(matriz, axis=1).tolist(),   # Desviación estándar por filas
+            np.std(matriz)                     # Desviación estándar de toda la matriz
+        ],
+        'max': [
+            np.max(matriz, axis=0).tolist(),   # Máximo por columnas
+            np.max(matriz, axis=1).tolist(),   # Máximo por filas
+            np.max(matriz)                     # Máximo de toda la matriz
+        ],
+        'min': [
+            np.min(matriz, axis=0).tolist(),   # Mínimo por columnas
+            np.min(matriz, axis=1).tolist(),   # Mínimo por filas
+            np.min(matriz)                     # Mínimo de toda la matriz
+        ],
+        'sum': [
+            np.sum(matriz, axis=0).tolist(),   # Suma por columnas
+            np.sum(matriz, axis=1).tolist(),   # Suma por filas
+            np.sum(matriz)                     # Suma de toda la matriz
+        ]
+    }
+    
+    return calculos
